@@ -29,7 +29,7 @@ public class start {
 
 	private static String toProcess;
 
-	private static final String USAGE = "dcmfileget [-Vh] <dcmfile>";
+	private static final String USAGE = "dcmfileget [-vh] <dcmfile>";
 	private static final String DESCRIPTION = "Dump some DICOM attributes in this form: \n"+
 											  "filepath|PatientName|Date|patientid|studyid|studyinstanceuid\n\n"+
 											  "  \nOptions:";
@@ -40,67 +40,15 @@ public class start {
 		for (final File fileEntry : folder.listFiles()) {
 
 			if (fileEntry.isDirectory()) {
-
+				
 				listFilesForFolder(fileEntry);
 
 			} else {
 				
-				toProcess = folder + File.separator + fileEntry.getName();
-				//System.out.println("");
-				//System.out.println("Processing " + toProcess);
-
-				DicomInputStream dis = null;
-				try {
-
-					dis = new DicomInputStream(fileEntry);
-
-					DicomObject obj = null;
-
-					try {
-						obj = dis.readDicomObject();
-
-						String patientname = obj.getString(Tag.PatientName);
-						String studydate = obj.getString(Tag.StudyDate);
-						String studyid = obj.getString(Tag.StudyID);
-						String patientid = obj.getString(Tag.PatientID);
-						String siuid = obj.getString(Tag.StudyInstanceUID);
-						System.out.println(fileEntry.toString()+"|"+patientname + "|" + studydate + "|"
-								+ patientid + "|" + studyid + "|" + siuid);
-
-						DateFormat df = new SimpleDateFormat("yyyyMMdd");
-
-						Date date;
-
-						try {
-							date = df.parse(studydate);
-
-							String startDateString1 = df.format(date);
-							// System.out.println("Date in format yyyyMMdd: " +
-							// startDateString1);
-
-							DateFormat year = new SimpleDateFormat("yyyy");
-							DateFormat month = new SimpleDateFormat("MM");
-							DateFormat day = new SimpleDateFormat("dd");
-
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							System.out.println("3 " + e.getMessage() + " fuck");
-						}
-
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						// e.printStackTrace();
-						System.out.println("2 " + e.getMessage() + " ignoring");
-
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					// e.printStackTrace();
-					System.out.println("1 " + e.getMessage() + " ignoring");
-				}
-
+				processfile(folder, fileEntry);
+				
 			}
-		}
+		} //end for
 	}
 
 	private static CommandLine parse(String[] args)
@@ -138,6 +86,64 @@ public class start {
 		System.exit(1);
 	}
 
+	private static void processfile(File folder, File fileEntry) {
+		
+		toProcess = folder + File.separator + fileEntry.getName();
+		//System.out.println("");
+		//System.out.println("Processing " + toProcess);
+
+		DicomInputStream dis = null;
+		try {
+
+			dis = new DicomInputStream(fileEntry);
+
+			DicomObject obj = null;
+
+			try {
+				obj = dis.readDicomObject();
+
+				String patientname = obj.getString(Tag.PatientName);
+				String studydate = obj.getString(Tag.StudyDate);
+				String studyid = obj.getString(Tag.StudyID);
+				String patientid = obj.getString(Tag.PatientID);
+				String siuid = obj.getString(Tag.StudyInstanceUID);
+				System.out.println(fileEntry.toString()+"|"+patientname + "|" + studydate + "|"
+						+ patientid + "|" + studyid + "|" + siuid);
+
+				DateFormat df = new SimpleDateFormat("yyyyMMdd");
+
+				Date date;
+
+				try {
+					date = df.parse(studydate);
+
+					String startDateString1 = df.format(date);
+					// System.out.println("Date in format yyyyMMdd: " +
+					// startDateString1);
+
+					DateFormat year = new SimpleDateFormat("yyyy");
+					DateFormat month = new SimpleDateFormat("MM");
+					DateFormat day = new SimpleDateFormat("dd");
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					System.out.println("3 " + e.getMessage() + " fuck");
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				// e.printStackTrace();
+				System.out.println("2 " + e.getMessage() + " ignoring");
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+			System.out.println("1 " + e.getMessage() + " ignoring");
+		}
+
+	}
+	
 	public static void main(String[] args) {
 
 		CommandLine cl;
@@ -149,8 +155,16 @@ public class start {
 			final File folder = new File(sourceDir);
 
 			//System.out.println("- " + sourceDir);
+			if (folder.isDirectory()) {
 
-			listFilesForFolder(folder);
+				listFilesForFolder(folder);
+
+			} else {
+				
+				processfile(folder, folder);
+				
+			}
+			
 
 		} catch (org.apache.commons.cli.ParseException e) {
 			// TODO Auto-generated catch block
